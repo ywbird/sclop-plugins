@@ -34,7 +34,7 @@ require('plugins/turn-notify').setup()
 | Plugin | Description |
 | --- | --- |
 | `interview.lua` | `/interview [project goal]` starts a project interview with the `interview-me` skill, then records the confirmed intent in `TODO.md` |
-| `0rwx-ai-x/` | `/0rwx [README path]` inserts the official AI:X logo block (CC0, 0rwx.com) before the title, copies `assets/AI-X-{dark,light}.svg` to `docs/assets/` and commits both (skipped without git or outside a work tree); no agent turn, and a second run is a no-op |
+| `0rwx-ai-x/` | `/0rwx [README path]` inserts the official AI:X logo block (CC0, 0rwx.com) before the title and copies `assets/AI-X-{dark,light}.svg` to `docs/assets/`; no agent turn, and a second run is a no-op. `setup{ commit = true }` also commits both (off by default; skipped without git or outside a work tree) |
 | `opencode-session-header.lua` | Sends a stable `x-opencode-session` header on provider requests, so opencode Go keeps one session across turns |
 | `notify.lua` | `notify` tool: sends a desktop notification with `notify-send` (`summary` required, `body` and `urgency` optional) |
 | `turn-notify.lua` | Sends one `sclop: turn finished` notification when a turn runs 60 s or longer (`min_seconds` to change); silent on shorter turns and when `notify-send` is missing |

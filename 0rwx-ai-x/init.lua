@@ -1,13 +1,16 @@
 -- 0rwx-ai-x: put the AI:X logo block in a README.
 --
---   require('plugins/0rwx-ai-x')
+--   require('plugins/0rwx-ai-x').setup{ commit = true }
 --
 --   /0rwx [README path]
 --
 -- The command edits the file itself, no agent turn: copies the SVGs from
--- ./assets into docs/assets/ of the current project, inserts the official AI:X
--- block from 0rwx.com (CC0) before the title and commits both. Running it twice
--- is a no-op. Without git, or outside a work tree, the commit step is skipped.
+-- ./assets into docs/assets/ of the current project and inserts the official
+-- AI:X block from 0rwx.com (CC0) before the title. Running it twice is a no-op.
+--
+-- commit is off by default. With commit = true the README and the two SVGs are
+-- also staged and committed; without git, outside a work tree, or for a README
+-- outside the project the commit step is skipped and the info line says why.
 
 local util = require('sclop.util')
 
@@ -26,6 +29,19 @@ local SNIPPET = [[
 local MARK = '<!-- Official 0rwx logos from https://0rwx.com/'
 local ASSETS = { 'AI-X-dark.svg', 'AI-X-light.svg' }
 local COMMIT_MSG = 'docs: add the AI:X logo block'
+
+local M = {}
+
+-- off unless setup{ commit = true }; the command works either way
+local options = { commit = false }
+
+function M.setup(opts)
+	opts = opts or {}
+	if opts.commit ~= nil then
+		options.commit = opts.commit == true
+	end
+	return M
+end
 
 local function dir()
 	local src = debug.getinfo(1, 'S').source:gsub('^@', '')
@@ -74,6 +90,9 @@ end
 
 -- commit the block and the SVGs; returns a suffix for the info line
 local function commit(path)
+	if not options.commit then
+		return ''
+	end
 	if not util.has('git') then
 		return ', git not found, not committed'
 	end
@@ -154,6 +173,8 @@ sclop:command_register('0rwx', function(args)
 		return sclop.error('0rwx: ' .. tostring(werr))
 	end
 	sclop.info('0rwx: added the AI:X block to ' .. path .. ', SVGs in docs/assets' .. commit(path))
-end, 'insert the AI:X logo block into README, copy its SVGs to docs/assets and commit')
+end, 'insert the AI:X logo block into README and copy its SVGs to docs/assets')
 
-return { insert = insert, dir = dir, commit = commit }
+M.insert, M.dir, M.commit = insert, dir, commit
+
+return M
