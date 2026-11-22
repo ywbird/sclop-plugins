@@ -5,8 +5,9 @@
 --   /0rwx [README path]
 --
 -- The command edits the file itself, no agent turn: copies the SVGs from
--- ./assets into docs/assets/ of the current project and inserts the official
--- AI:X block from 0rwx.com (CC0) before the title. Running it twice is a no-op.
+-- ./assets into docs/assets/ of the current project, inserts the official AI:X
+-- block from 0rwx.com (CC0) before the title and commits both. Running it twice
+-- is a no-op. Without git, or outside a work tree, the commit step is skipped.
 
 local util = require('sclop.util')
 
@@ -24,6 +25,7 @@ local SNIPPET = [[
 
 local MARK = '<!-- Official 0rwx logos from https://0rwx.com/'
 local ASSETS = { 'AI-X-dark.svg', 'AI-X-light.svg' }
+local COMMIT_MSG = 'docs: add the AI:X logo block'
 
 local function dir()
 	local src = debug.getinfo(1, 'S').source:gsub('^@', '')
@@ -50,6 +52,58 @@ local function write(path, text)
 	return ok, werr
 end
 
+-- run one shell command, return its output (no exit marker) and exit code
+local function run(cmd)
+	local p = io.popen('(' .. cmd .. ') 2>&1; echo "__exit__$?"')
+	if not p then
+		return '', -1
+	end
+	local out = p:read('*a') or ''
+	p:close()
+	local code = tonumber(out:match('__exit__(%d+)%s*$')) or -1
+	return (out:gsub('\n?__exit__%d+%s*$', '')), code
+end
+
+local function git(argv)
+	local parts = { 'git', '-C', util.quote(sclop.cwd) }
+	for _, a in ipairs(argv) do
+		parts[#parts + 1] = util.quote(a)
+	end
+	return run(table.concat(parts, ' '))
+end
+
+-- commit the block and the SVGs; returns a suffix for the info line
+local function commit(path)
+	if not util.has('git') then
+		return ', git not found, not committed'
+	end
+	local tree, code = git{ 'rev-parse', '--is-inside-work-tree' }
+	if code ~= 0 or tree:match('^true') == nil then
+		return ', not a git work tree, not committed'
+	end
+	if path:sub(1, #sclop.cwd + 1) ~= sclop.cwd .. '/' then
+		return ', ' .. path .. ' is outside ' .. sclop.cwd .. ', not committed'
+	end
+	local files = { path }
+	for _, name in ipairs(ASSETS) do
+		files[#files + 1] = sclop.cwd .. '/docs/assets/' .. name
+	end
+	local out
+	out, code = git{ 'add', '--', unpack(files) }
+	if code ~= 0 then
+		return ', git add failed: ' .. (out:match('([^\n]+)') or 'exit ' .. code)
+	end
+	out, code = git{ 'commit', '-q', '-m', COMMIT_MSG, '--', unpack(files) }
+	if code ~= 0 then
+		return ', git commit failed: ' .. (out:match('([^\n]+)') or 'exit ' .. code)
+	end
+	local sha, scode = git{ 'rev-parse', '--short', 'HEAD' }
+	if scode ~= 0 then
+		return ', committed'
+	end
+	return ', committed ' .. (sha:match('(%x+)') or 'HEAD')
+end
+
 -- insert the block before the first title line, or at the top
 local function insert(text)
 	if text:find(MARK, 1, true) then
@@ -70,6 +124,9 @@ sclop:command_register('0rwx', function(args)
 	end
 	args = args:match('^%s*(.-)%s*$') or ''
 	local path = util.expand(args ~= '' and args or sclop.cwd .. '/README.md')
+	if path:sub(1, 1) ~= '/' then
+		path = sclop.cwd .. '/' .. path
+	end
 	local text = read(path)
 	if not text then
 		return sclop.error('0rwx: cannot read ' .. path)
@@ -96,7 +153,7 @@ sclop:command_register('0rwx', function(args)
 	if not ok then
 		return sclop.error('0rwx: ' .. tostring(werr))
 	end
-	sclop.info('0rwx: added the AI:X block to ' .. path .. ', SVGs in docs/assets')
-end, 'insert the AI:X logo block into README and copy its SVGs to docs/assets')
+	sclop.info('0rwx: added the AI:X block to ' .. path .. ', SVGs in docs/assets' .. commit(path))
+end, 'insert the AI:X logo block into README, copy its SVGs to docs/assets and commit')
 
-return { insert = insert, dir = dir }
+return { insert = insert, dir = dir, commit = commit }
