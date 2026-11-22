@@ -12,6 +12,7 @@ Then load the ones you want in `~/.config/sclop/init.lua`:
 
 ```lua
 require('plugins/interview')
+require('plugins/0rwx-ai-x').setup()
 require('plugins/opencode-session-header').setup()
 ```
 
@@ -20,6 +21,7 @@ require('plugins/opencode-session-header').setup()
 | Plugin | Description |
 | --- | --- |
 | `interview.lua` | `/interview [project goal]` starts a project interview with the `interview-me` skill, then records the confirmed intent in `TODO.md` |
+| `0rwx-ai-x/` | Tells the agent to start every README it writes with the official AI:X logo block (CC0, 0rwx.com); ships `assets/AI-X-{dark,light}.svg` to copy into `docs/assets/` |
 | `opencode-session-header.lua` | Sends a stable `x-opencode-session` header on provider requests, so opencode Go keeps one session across turns |
 
 ## Built-in plugins
