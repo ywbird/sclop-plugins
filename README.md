@@ -23,7 +23,7 @@ Then load the ones you want in `~/.config/sclop/init.lua`:
 
 ```lua
 require('plugins/interview')
-require('plugins/0rwx-ai-x').setup()
+require('plugins/0rwx-ai-x')
 require('plugins/opencode-session-header').setup()
 require('plugins/notify')
 require('plugins/turn-notify').setup()
@@ -34,7 +34,7 @@ require('plugins/turn-notify').setup()
 | Plugin | Description |
 | --- | --- |
 | `interview.lua` | `/interview [project goal]` starts a project interview with the `interview-me` skill, then records the confirmed intent in `TODO.md` |
-| `0rwx-ai-x/` | Tells the agent to start every README it writes with the official AI:X logo block (CC0, 0rwx.com); ships `assets/AI-X-{dark,light}.svg` to copy into `docs/assets/` |
+| `0rwx-ai-x/` | `/0rwx [README path]` inserts the official AI:X logo block (CC0, 0rwx.com) before the title and copies `assets/AI-X-{dark,light}.svg` to `docs/assets/`; no agent turn, and a second run is a no-op |
 | `opencode-session-header.lua` | Sends a stable `x-opencode-session` header on provider requests, so opencode Go keeps one session across turns |
 | `notify.lua` | `notify` tool: sends a desktop notification with `notify-send` (`summary` required, `body` and `urgency` optional) |
 | `turn-notify.lua` | Sends one `sclop: turn finished` notification when a turn runs 60 s or longer (`min_seconds` to change); silent on shorter turns and when `notify-send` is missing |
