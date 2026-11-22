@@ -25,7 +25,10 @@ Behavior:
   - Saving TODO.md overrides `interview-me`'s "no tool calls, stop immediately" rule. Always stop after saving.
 - During implementation:
   - Keep the feedback checkbox list in TODO.md.
+  - Fixing a feedback item means the `interview-me` loop for that item alone. Before touching code, load `interview-me` and follow it for that one item: restate what the item asks for, ask one question at a time until Why, Who, Success, and Constraint are clear, and get an explicit yes.
+  - Do not batch items. One item, one interview, one change, one commit. Never carry an answer from one item to another.
   - When feedback is ambiguous, indent under that item and list the points to confirm.
+  - After the yes, edit only what that item needs and commit. Tick the checkbox only with the user's yes, not on your own.
   - Commit after every change.
 ]]
 
