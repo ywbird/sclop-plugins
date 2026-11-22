@@ -5,7 +5,7 @@ My plugins for [slop-sclop](https://github.com/ywbird/slop-sclop), a minimal cod
 ## Install
 
 ```sh
-git clone git@github.com:ywbird/sclop-plugins.git ~/.config/sclop/plugins
+git clone https://github.com/ywbird/sclop-plugins.git ~/.config/sclop/plugins
 ```
 
 Then load the ones you want in `~/.config/sclop/init.lua`:
