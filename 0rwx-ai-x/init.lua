@@ -21,7 +21,7 @@ local SNIPPET = [[
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/assets/AI-X-dark.svg">
       <source media="(prefers-color-scheme: light)" srcset="docs/assets/AI-X-light.svg">
-      <img src="docs/assets/AI-X-light.svg" alt="AI:X — AI가 만든 프로젝트 (0rwx)" width="64" height="64" align="right">
+      <img src="docs/assets/AI-X-light.svg" alt="AI:X - vibe coded (0rwx)" width="64" height="64" align="right">
     </picture>
   </a>
 </p>]]
