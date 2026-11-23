@@ -1,0 +1,82 @@
+#!/bin/sh
+# pick-session: pick a session of this directory with fzf and resume it
+#   pick-session [sclop options...]
+#
+# lists .sclop/sessions/*.jsonl, newest activity first, previews each one with
+# sclog, and runs `sclop -c FILE` on the session you choose.
+
+self=$0
+while [ -L "$self" ]; do
+	link=$(readlink "$self") || break
+	case $link in
+	/*) self=$link ;;
+	*) self=$(dirname -- "$self")/$link ;;
+	esac
+done
+case $self in
+*/*) ;;
+*) self=$(command -v -- "$self") || self=$0 ;;
+esac
+dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || exit 1
+sessions=$(pwd)/.sclop/sessions
+
+if [ ! -d "$sessions" ]; then
+	echo "pick-session: no sessions in $(pwd)/.sclop" >&2
+	exit 1
+fi
+
+command -v fzf >/dev/null 2>&1 || {
+	echo 'pick-session: fzf is not on PATH' >&2
+	exit 1
+}
+
+# `make install` puts sclop and sclog on PATH; in a source tree they sit above tools/
+found() {
+	if command -v "$1" >/dev/null 2>&1; then
+		command -v "$1"
+	elif [ -x "$dir/../$1" ]; then
+		printf '%s\n' "$dir/../$1"
+	fi
+}
+
+sclop=$(found sclop)
+sclog=$(found sclog)
+if [ -z "$sclop" ] || [ -z "$sclog" ]; then
+	echo 'pick-session: sclop and sclog must be installed (make install)' >&2
+	exit 1
+fi
+
+# input lines are "PATH<TAB>WHAT FZF SHOWS", so a chosen line yields the path.
+# what fzf shows is when the session was last written and how big it is
+tab=$(printf '\t')
+lines=$(
+	ls -1t "$sessions" 2>/dev/null | while IFS= read -r name; do
+		case $name in
+		*.jsonl) ;;
+		*) continue ;;
+		esac
+		path=$sessions/$name
+		[ -f "$path" ] || continue
+		# date -r means the update time on GNU and seconds on BSD; else use the name
+		when=$(date -r "$path" '+%Y-%m-%d %H:%M' 2>/dev/null)
+		case $when in
+		[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\ [0-9][0-9]:[0-9][0-9]) ;;
+		*) when=$(printf '%s' "$name" | sed -n 's/^\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)-\([0-9]\{2\}\)\([0-9]\{2\}\).*/\1-\2-\3 \4:\5/p') ;;
+		esac
+		[ -n "$when" ] || when=$name
+		printf '%s%s%s  %5s lines\n' "$path" "$tab" "$when" "$(wc -l <"$path" | tr -d ' ')"
+	done
+)
+if [ -z "$lines" ]; then
+	echo "pick-session: no session files in $sessions" >&2
+	exit 1
+fi
+
+# the fzf preview calls sclog by name, so put the one we found first on PATH
+PATH=$(dirname -- "$sclog"):$PATH
+line=$(printf '%s\n' "$lines" | fzf --delimiter="$tab" --with-nth=2.. \
+	--preview 'sclog {1}' --preview-window 'right,60%,wrap' \
+	--header 'enter: resume  ctrl-a: everything (thinking, full tool output)' \
+	--bind 'ctrl-a:change-preview(sclog --all {1})') || exit
+[ -n "$line" ] || exit 1
+exec "$sclop" -c "$(printf '%s' "$line" | cut -f1)" "$@"
