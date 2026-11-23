@@ -39,6 +39,14 @@ require('plugins/turn-notify').setup()
 | `notify.lua` | `notify` tool: sends a desktop notification with `notify-send` (`summary` required, `body` and `urgency` optional) |
 | `turn-notify.lua` | Sends one `sclop: turn finished` notification when a turn runs 60 s or longer (`min_seconds` to change); silent on shorter turns and when `notify-send` is missing |
 
+## Tools
+
+Standalone scripts, not loaded by sclop. Put `tools/` on your `PATH` (or symlink the ones you want).
+
+| Tool | Description |
+| --- | --- |
+| `tools/pick-session` | Lists `.sclop/sessions/*.jsonl` of the current directory newest first, previews each with `sclog`, and resumes the one you pick with `sclop -c FILE` (fzf; `ctrl-a` for full thinking and tool output) |
+
 ## Built-in plugins
 
 These ship with sclop (`/usr/local/share/sclop/plugins`) and are not part of this repo:
